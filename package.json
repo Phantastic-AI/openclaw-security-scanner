@@ -1,0 +1,48 @@
+{
+  "name": "openclaw-security-scanner",
+  "version": "0.3.0",
+  "description": "OpenClaw Security Scanner — ingress review and egress blocking plugin for OpenClaw agents.",
+  "type": "module",
+  "main": "index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./lib/*": "./lib/*",
+    "./openclaw.plugin.json": "./openclaw.plugin.json"
+  },
+  "files": [
+    "index.mjs",
+    "lib/",
+    "scripts/",
+    "openclaw.plugin.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test ./test/*.test.mjs",
+    "prepublishOnly": "node scripts/verify-package-shape.mjs"
+  },
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "security",
+    "scanner",
+    "ocss",
+    "ingress",
+    "egress",
+    "prompt-injection",
+    "clamav",
+    "antivirus"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Phantastic-AI/openclaw-security-scanner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Phantastic-AI/openclaw-security-scanner/issues"
+  },
+  "homepage": "https://github.com/Phantastic-AI/openclaw-security-scanner#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

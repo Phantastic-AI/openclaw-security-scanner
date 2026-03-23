@@ -1,0 +1,259 @@
+{
+  "id": "openclaw-security-scanner",
+  "name": "OpenClaw Security Scanner",
+  "description": "OpenClaw Security Scanner for ingress review and egress blocking.",
+  "version": "0.3.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "ingressBackend": {
+        "type": "string",
+        "enum": [
+          "gateway",
+          "promptscanner",
+          "disabled"
+        ]
+      },
+      "egressBackend": {
+        "type": "string",
+        "enum": [
+          "gateway",
+          "disabled"
+        ]
+      },
+      "trustBackend": {
+        "type": "string",
+        "enum": [
+          "gateway",
+          "disabled"
+        ]
+      },
+      "apiUrl": {
+        "type": "string",
+        "minLength": 1
+      },
+      "apiKey": {
+        "type": "string",
+        "minLength": 1
+      },
+      "callerId": {
+        "type": "string",
+        "minLength": 1
+      },
+      "podId": {
+        "type": "string",
+        "minLength": 1
+      },
+      "policyVersion": {
+        "type": "string",
+        "minLength": 1
+      },
+      "gatewayBaseUrl": {
+        "type": "string",
+        "minLength": 1
+      },
+      "gatewayToken": {
+        "type": "string",
+        "minLength": 1
+      },
+      "gatewayReviewTransport": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "subagent",
+          "http"
+        ]
+      },
+      "trustModel": {
+        "type": "string",
+        "minLength": 1
+      },
+      "ingressModel": {
+        "type": "string",
+        "minLength": 1
+      },
+      "egressModel": {
+        "type": "string",
+        "minLength": 1
+      },
+      "approvalIntentModel": {
+        "type": "string",
+        "minLength": 1
+      },
+      "mainModel": {
+        "type": "string",
+        "minLength": 1
+      },
+      "trustCacheTtlSec": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "reviewCacheTtlSec": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "maxContentChars": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "approvalTtlSec": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "knownTrustedTools": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "knownUntrustedTools": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "warnMode": {
+        "type": "string",
+        "enum": [
+          "wrap"
+        ]
+      },
+      "persistMode": {
+        "type": "string",
+        "enum": [
+          "stub"
+        ]
+      },
+      "headlessAskPolicy": {
+        "type": "string",
+        "enum": [
+          "block"
+        ]
+      },
+      "antivirusMode": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "disabled",
+          "required"
+        ]
+      },
+      "antivirusWarnUnavailable": {
+        "type": "boolean"
+      },
+      "antivirusSocketPath": {
+        "type": "string",
+        "minLength": 1
+      },
+      "antivirusClamdConfigPath": {
+        "type": "string",
+        "minLength": 1
+      },
+      "antivirusScanTimeoutMs": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "uiHints": {
+    "ingressBackend": {
+      "label": "Ingress Backend",
+      "placeholder": "gateway"
+    },
+    "egressBackend": {
+      "label": "Egress Backend",
+      "placeholder": "gateway"
+    },
+    "trustBackend": {
+      "label": "Trust Backend",
+      "placeholder": "gateway"
+    },
+    "apiUrl": {
+      "label": "PromptScanner API URL",
+      "placeholder": "https://promptscanner.moltpod.com",
+      "advanced": true
+    },
+    "apiKey": {
+      "label": "PromptScanner API Key",
+      "sensitive": true,
+      "advanced": true
+    },
+    "callerId": {
+      "label": "PromptScanner Caller ID",
+      "placeholder": "pod-a-openclaw",
+      "advanced": true
+    },
+    "podId": {
+      "label": "Pod ID",
+      "placeholder": "moltpod-prod-a"
+    },
+    "gatewayBaseUrl": {
+      "label": "Gateway Base URL",
+      "advanced": true,
+      "placeholder": "http://127.0.0.1:18789"
+    },
+    "gatewayToken": {
+      "label": "Gateway Token",
+      "sensitive": true,
+      "advanced": true
+    },
+    "gatewayReviewTransport": {
+      "label": "Gateway Review Transport",
+      "advanced": true,
+      "placeholder": "auto"
+    },
+    "trustModel": {
+      "label": "Trust Review Model",
+      "advanced": true,
+      "placeholder": "pod primary model"
+    },
+    "ingressModel": {
+      "label": "Ingress Review Model",
+      "advanced": true,
+      "placeholder": "pod primary model"
+    },
+    "egressModel": {
+      "label": "Egress Review Model",
+      "advanced": true,
+      "placeholder": "pod primary model"
+    },
+    "approvalIntentModel": {
+      "label": "Approval Intent Model",
+      "advanced": true,
+      "placeholder": "egress model or pod primary model"
+    },
+    "approvalTtlSec": {
+      "label": "Approval TTL Seconds",
+      "advanced": true,
+      "placeholder": "900"
+    },
+    "antivirusMode": {
+      "label": "Antivirus Mode",
+      "advanced": true,
+      "placeholder": "auto"
+    },
+    "antivirusWarnUnavailable": {
+      "label": "Warn When Antivirus Unavailable",
+      "advanced": true
+    },
+    "antivirusSocketPath": {
+      "label": "ClamAV Socket Path",
+      "advanced": true,
+      "placeholder": "/run/clamav/clamd.ctl"
+    },
+    "antivirusClamdConfigPath": {
+      "label": "ClamAV Config Path",
+      "advanced": true,
+      "placeholder": "/etc/clamav/clamd.conf"
+    },
+    "antivirusScanTimeoutMs": {
+      "label": "Antivirus Scan Timeout (ms)",
+      "advanced": true,
+      "placeholder": "4000"
+    }
+  }
+}
