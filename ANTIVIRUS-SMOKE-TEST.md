@@ -1,9 +1,9 @@
-# OCSS Antivirus Smoke Test
+# OCS Antivirus Smoke Test
 
 Last updated: 2026-03-22
-Canonical spec: [OPENCLAW-SECURITY-PLUGIN-SPEC.md](./OPENCLAW-SECURITY-PLUGIN-SPEC.md)
+Canonical spec: [OPENCLAW-SCANNER-SPEC.md](./OPENCLAW-SCANNER-SPEC.md)
 
-This protocol verifies OCSS antivirus behavior on a real pod host in two states:
+This protocol verifies OCS antivirus behavior on a real pod host in two states:
 
 - without a usable ClamAV daemon
 - with `clamd` installed and healthy
@@ -12,9 +12,9 @@ It uses a coding-profile canary because messaging-profile pods do not expose `ex
 
 ## What this smoke proves
 
-- file-producing shell actions are detected by OCSS
-- OCSS records `unavailable` when no antivirus daemon is usable
-- OCSS records `clean` with `protection=triggered` when `clamd` is reachable
+- file-producing shell actions are detected by OCS
+- OCS records `unavailable` when no antivirus daemon is usable
+- OCS records `clean` with `protection=triggered` when `clamd` is reachable
 - the pod workspace is actually mutated by the `npm install` action in both runs
 
 ## What this smoke does not prove
@@ -33,7 +33,7 @@ Recommended canary state:
 - `OPENCLAW_CONFIG_PATH=/home/openclaw/.openclaw-avsmoke/openclaw.json`
 - `tools.profile = "coding"`
 - no channel plugins
-- OCSS enabled from `/home/openclaw/.openclaw-avsmoke/extensions/openclaw-security-scanner`
+- OCS enabled from `/home/openclaw/.openclaw-avsmoke/extensions/openclaw-scanner`
 - loopback gateway on a separate port such as `19011`
 
 ## No-ClamAV Smoke
@@ -59,10 +59,10 @@ env OPENCLAW_STATE_DIR=/home/openclaw/.openclaw-avsmoke \
 Expected evidence:
 
 - workspace contains `av-no-clam/package.json`, `package-lock.json`, and `node_modules/is-number`
-- `~/.openclaw-avsmoke/plugins/openclaw-security-scanner/antivirus-status.json` reports:
+- `~/.openclaw-avsmoke/plugins/openclaw-scanner/antivirus-status.json` reports:
   - `status: "unavailable"`
   - `protection: "unavailable"`
-- `~/.openclaw-avsmoke/plugins/openclaw-security-scanner/antivirus-ledger.json` contains a record with:
+- `~/.openclaw-avsmoke/plugins/openclaw-scanner/antivirus-ledger.json` contains a record with:
   - `verdict: "unavailable"`
   - `actionKind: "package install"`
 - gateway log contains `event":"antivirus_unavailable"`
@@ -111,11 +111,11 @@ env OPENCLAW_STATE_DIR=/home/openclaw/.openclaw-avsmoke \
 Expected evidence:
 
 - workspace contains `av-with-clam/package.json`, `package-lock.json`, and `node_modules/is-odd`
-- `~/.openclaw-avsmoke/plugins/openclaw-security-scanner/antivirus-status.json` reports:
+- `~/.openclaw-avsmoke/plugins/openclaw-scanner/antivirus-status.json` reports:
   - `status: "active"`
   - `protection: "triggered"`
   - `socketPath: "/run/clamav/clamd.ctl"`
-- `~/.openclaw-avsmoke/plugins/openclaw-security-scanner/antivirus-ledger.json` contains a record with:
+- `~/.openclaw-avsmoke/plugins/openclaw-scanner/antivirus-ledger.json` contains a record with:
   - `verdict: "clean"`
   - `protection: "triggered"`
   - `scannedPaths` populated
@@ -127,14 +127,14 @@ Expected evidence:
 Repo-local report script:
 
 ```bash
-node scripts/print_antivirus_report.mjs --state-dir ~/.openclaw/plugins/openclaw-security-scanner
+node scripts/print_antivirus_report.mjs --state-dir ~/.openclaw/plugins/openclaw-scanner
 ```
 
 Live canary report on the pod host:
 
 ```bash
-cat /home/openclaw/.openclaw-avsmoke/plugins/openclaw-security-scanner/antivirus-status.json
-cat /home/openclaw/.openclaw-avsmoke/plugins/openclaw-security-scanner/antivirus-ledger.json
+cat /home/openclaw/.openclaw-avsmoke/plugins/openclaw-scanner/antivirus-status.json
+cat /home/openclaw/.openclaw-avsmoke/plugins/openclaw-scanner/antivirus-ledger.json
 ```
 
 ## Verified Live Notes
@@ -148,17 +148,17 @@ Verified on `51.210.13.102` on March 22, 2026 UTC:
 
 Verified on Vince pod `51.210.14.27` on March 22, 2026 UTC with OpenClaw `2026.3.14`:
 
-- benign `npm install` egress review no longer blocks on truncated `/v1/responses` output because OCSS falls back to `chatCompletions`
+- benign `npm install` egress review no longer blocks on truncated `/v1/responses` output because OCS falls back to `chatCompletions`
 - no-ClamAV run recorded `status=unavailable`, `protection=unavailable`, and the warning text in the antivirus ledger/report while the final assistant reply still failed to surface that warning
 - with-ClamAV run recorded `status=active`, `protection=triggered`, `verdict=clean`, and the final assistant reply correctly reported that no antivirus warning applied
 
 ## Known Compatibility Gaps On OpenClaw 2026.3.2
 
 - plugin subagent review transport was not usable on the deployed pod build, so the canary used local loopback HTTP review instead
-- plugin CLI registration for `openclaw ocss ...` was not exposed on the deployed pod build even though repo tests pass
+- plugin CLI registration for `openclaw ocs ...` was not exposed on the deployed pod build even though repo tests pass
 - live `after_tool_call` payloads on this pod build did not carry reliable `sessionKey` / `toolCallId` attribution into the antivirus ledger
-- Gemini did not reliably echo the unavailable-scan warning in the final assistant reply even when OCSS injected warning context; the ledger and gateway log were the source of truth for the no-ClamAV canary
+- Gemini did not reliably echo the unavailable-scan warning in the final assistant reply even when OCS injected warning context; the ledger and gateway log were the source of truth for the no-ClamAV canary
 
 ## Known Compatibility Gap On OpenClaw 2026.3.14
 
-- on Vince's latest available `2026.3.14` build, no-ClamAV detection, ledger/report output, and benign egress review all work, but the final assistant reply still does not reliably surface the unavailable-scan warning even when OCSS injects warning context before the next model turn
+- on Vince's latest available `2026.3.14` build, no-ClamAV detection, ledger/report output, and benign egress review all work, but the final assistant reply still does not reliably surface the unavailable-scan warning even when OCS injects warning context before the next model turn

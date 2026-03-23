@@ -57,7 +57,7 @@ function registerPlugin(pluginConfig = {}, fullConfig = {}, runtimeOverrides = {
   const cliRegistrars = [];
   const stateDir =
     runtimeOverrides.state?.resolveStateDir?.() ||
-    fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-security-plugin-"));
+    fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-scanner-"));
   const api = {
     pluginConfig,
     config: {
@@ -141,7 +141,7 @@ function createCliProgramHarness() {
 }
 
 async function withFakeClamd(run, options = {}) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-security-clamd-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-scanner-clamd-"));
   const socketPath = path.join(tempDir, "clamd.sock");
   const responses = options.responses || {};
   const server = net.createServer((socket) => {
@@ -705,7 +705,7 @@ test("print_review_ledger script renders saved review pointers", () => {
   assert.match(result.stdout, /usage=input:11 output:7 cacheRead:3 cacheWrite:2 total:23/);
 });
 
-test("plugin registers an ocss OpenClaw CLI command", () => {
+test("plugin registers an ocs OpenClaw CLI command", () => {
   const { cliRegistrars } = registerPlugin({ enabled: false });
 
   assert.equal(cliRegistrars.length, 1);
@@ -714,8 +714,8 @@ test("plugin registers an ocss OpenClaw CLI command", () => {
   });
 });
 
-test("ocss OpenClaw CLI report renders saved review pointers", async () => {
-  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-security-cli-"));
+test("ocs OpenClaw CLI report renders saved review pointers", async () => {
+  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-scanner-cli-"));
   const pluginStateDir = resolveReviewLedgerStateDir(stateDir);
   fs.mkdirSync(pluginStateDir, { recursive: true });
   fs.writeFileSync(
@@ -1338,8 +1338,8 @@ test("antivirus report script prints status and recent records", async () => {
   assert.match(result.stdout, /session=session-av-script toolCallId=call-av-script/);
 });
 
-test("ocss antivirus-report renders saved antivirus records", async () => {
-  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-security-antivirus-cli-"));
+test("ocs antivirus-report renders saved antivirus records", async () => {
+  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-scanner-antivirus-cli-"));
   const pluginStateDir = resolveReviewLedgerStateDir(stateDir);
   fs.mkdirSync(pluginStateDir, { recursive: true });
   fs.writeFileSync(
@@ -1863,7 +1863,7 @@ test("before_prompt_build can grant a single pending approval even if the classi
 
 test("approval state persists across plugin re-registration via the state dir", async () => {
   const originalFetch = globalThis.fetch;
-  const sharedStateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-security-plugin-shared-"));
+  const sharedStateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-scanner-shared-"));
 
   try {
     const first = registerPlugin(
@@ -1998,7 +1998,7 @@ test("approval state persists across plugin re-registration via the state dir", 
 
 test("before_prompt_build can resolve approval intent from persisted session transcript state", async () => {
   const originalFetch = globalThis.fetch;
-  const sharedStateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-security-plugin-transcript-"));
+  const sharedStateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-scanner-transcript-"));
   try {
     const { hooks } = registerPlugin(
       {
@@ -2147,7 +2147,7 @@ test("before_prompt_build can resolve approval intent from persisted session tra
 test("before_tool_call can resolve transcript-backed approval without a prior before_prompt_build pass", async () => {
   const originalFetch = globalThis.fetch;
   const sharedStateDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), "openclaw-security-plugin-toolcall-transcript-"),
+    path.join(os.tmpdir(), "openclaw-scanner-toolcall-transcript-"),
   );
   try {
     const { hooks } = registerPlugin(

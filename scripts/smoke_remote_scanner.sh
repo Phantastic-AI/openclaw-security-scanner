@@ -98,7 +98,7 @@ show_approval_state() {
 import json
 from pathlib import Path
 session_key = '${session_key}'
-p = Path('/home/openclaw/.openclaw/plugins/openclaw-security-scanner/approval-store.json')
+p = Path('/home/openclaw/.openclaw/plugins/openclaw-scanner/approval-store.json')
 payload = json.loads(p.read_text())
 entries = payload.get('entries', {})
 matches = False
@@ -117,7 +117,7 @@ show_security_log_tail() {
   remote "python3 - <<'PY'
 from pathlib import Path
 log_path = Path('/tmp/openclaw-999/openclaw-$(date +%F).log')
-lines = [line.rstrip() for line in log_path.read_text().splitlines() if 'openclaw-security-scanner' in line]
+lines = [line.rstrip() for line in log_path.read_text().splitlines() if 'openclaw-scanner' in line]
 for line in lines[-30:]:
     print(line)
 PY"

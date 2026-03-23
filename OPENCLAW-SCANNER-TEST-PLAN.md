@@ -1,12 +1,12 @@
-# OpenClaw Security Scanner (OCSS) Test Plan
+# OpenClaw Scanner (OCS) Test Plan
 
 Last updated: 2026-03-17
 
-Canonical markdown for the public scanner repo: [OPENCLAW-SECURITY-PLUGIN-TEST-PLAN.md](./OPENCLAW-SECURITY-PLUGIN-TEST-PLAN.md)
+Canonical markdown for the public scanner repo: [OPENCLAW-SCANNER-TEST-PLAN.md](./OPENCLAW-SCANNER-TEST-PLAN.md)
 
 ## Scope
 
-This plan covers the minimal spine in [OPENCLAW-SECURITY-PLUGIN-SPEC.md](./OPENCLAW-SECURITY-PLUGIN-SPEC.md).
+This plan covers the minimal spine in [OPENCLAW-SCANNER-SPEC.md](./OPENCLAW-SCANNER-SPEC.md).
 
 The point of this plan is not to test every idea. It is to prove the small core actually holds under pressure.
 

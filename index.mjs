@@ -42,15 +42,15 @@ import {
 } from "./lib/review-ledger-report.mjs";
 
 const DEFAULT_GATEWAY_PORT = 18789;
-const DEFAULT_POLICY_VERSION = "2026-03-22-openclaw-security-scanner-v1";
+const DEFAULT_POLICY_VERSION = "2026-03-23-openclaw-scanner-v1";
 const SECURITY_METADATA_KEY = "openclawSecurity";
 const DEFAULT_PENDING_NOTICE =
   `[${REVIEW_LEDGER_PLUGIN_NAME} withheld this tool result pending ingress review because it may contain untrusted instructions.]`;
 const DEFAULT_QUARANTINE_NOTICE =
   `[${REVIEW_LEDGER_PLUGIN_NAME} quarantined this tool result because it may contain untrusted instructions or prompt injection.]`;
 const DEFAULT_APPROVAL_TTL_SEC = 15 * 60;
-const LOG_PREFIX = "openclaw-security-scanner";
-const INTERNAL_REVIEW_SESSION_TAG = "ocss-review";
+const LOG_PREFIX = "openclaw-scanner";
+const INTERNAL_REVIEW_SESSION_TAG = "ocs-review";
 
 const BUILTIN_TRUSTED_TOOLS = new Set([
   "message",
@@ -723,7 +723,7 @@ function isApprovalResponseContext(latestUserText, previousAssistantText) {
     /\bapprove\b/,
     /\bdenied action\b/,
     /\brequires explicit human approval\b/,
-    /\bblocked by openclaw security scanner\b/,
+    /\bblocked by openclaw (?:security )?scanner\b/,
     /\bgrant approval\b/,
     /\bretry\b/,
   ].some((pattern) => pattern.test(previous));
@@ -836,7 +836,7 @@ function logSecurity(api, eventType, fields) {
 const plugin = {
   id: REVIEW_LEDGER_PLUGIN_ID,
   name: REVIEW_LEDGER_PLUGIN_NAME,
-  description: "OpenClaw Security Scanner plugin for ingress review and egress blocking",
+  description: "OpenClaw Scanner plugin for ingress review and egress blocking",
   register(api) {
     const config = normalizeConfig(api.pluginConfig, api.config);
     const stateDir = resolveReviewLedgerStateDir(api.runtime.state.resolveStateDir());

@@ -1,7 +1,7 @@
-# OpenClaw Security Scanner (OCSS) Smoke Test
+# OpenClaw Scanner (OCS) Smoke Test
 
 Last updated: 2026-03-17
-Canonical spec: [OPENCLAW-SECURITY-PLUGIN-SPEC.md](./OPENCLAW-SECURITY-PLUGIN-SPEC.md)
+Canonical spec: [OPENCLAW-SCANNER-SPEC.md](./OPENCLAW-SCANNER-SPEC.md)
 
 This plugin now has a repeatable pod smoke path for the live `dev-security` messaging-profile pods.
 
@@ -25,13 +25,13 @@ Those require a coding-profile pod with `exec` or web tools enabled.
 ## One-command smoke
 
 ```bash
-./scripts/smoke_remote_security_plugin.sh 51.210.13.102
+./scripts/smoke_remote_scanner.sh 51.210.13.102
 ```
 
 Optional session prefix:
 
 ```bash
-./scripts/smoke_remote_security_plugin.sh 51.210.13.102 my-smoke
+./scripts/smoke_remote_scanner.sh 51.210.13.102 my-smoke
 ```
 
 ## How to read the results
@@ -49,7 +49,7 @@ Optional session prefix:
 
 The `dev-security` pod currently uses the `messaging` tool profile. The strongest live allow-once proof is a `sessions_send` request to `agent:main:main`:
 
-- OpenClaw Security Scanner blocks it first as `ask`
+- OpenClaw Scanner blocks it first as `ask`
 - a natural-language `Yes, send it now.` grants the exact pending action once
 - the tool then runs successfully on the same session via `sessions_send ... timeoutSeconds 0`
 - the live transcript shows the accepted send result and the echoed inbound inter-session message

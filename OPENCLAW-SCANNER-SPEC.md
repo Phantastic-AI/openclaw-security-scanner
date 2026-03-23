@@ -1,8 +1,8 @@
-# OpenClaw Security Scanner (OCSS) Spec
+# OpenClaw Scanner (OCS) Spec
 
 Last updated: 2026-03-17
 
-Canonical markdown: [OPENCLAW-SECURITY-PLUGIN-SPEC.md](./OPENCLAW-SECURITY-PLUGIN-SPEC.md)
+Canonical markdown: [OPENCLAW-SCANNER-SPEC.md](./OPENCLAW-SCANNER-SPEC.md)
 
 ## Summary
 

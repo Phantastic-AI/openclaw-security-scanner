@@ -1,18 +1,18 @@
-# OpenClaw Security Scanner (OCSS)
+# OpenClaw Scanner (OCS)
 
-[![npm version](https://img.shields.io/npm/v/openclaw-security-scanner)](https://www.npmjs.com/package/openclaw-security-scanner)
+[![npm version](https://img.shields.io/npm/v/openclaw-scanner)](https://www.npmjs.com/package/openclaw-scanner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-OpenClaw-native security scanner plugin for:
+OpenClaw-native scanner plugin for:
 
 - **Ingress Guard**: review untrusted tool output before the next model turn
 - **Egress Guard**: block obviously unsafe tool actions before they run
 - **Antivirus Integration**: [ClamAV](https://www.clamav.net/)-backed file scanning for package installs, downloads, and archive extraction
 
-Install:
+Install from npm through OpenClaw:
 
 ```bash
-npm install openclaw-security-scanner
+openclaw plugins install openclaw-scanner
 ```
 
 Links:
@@ -96,8 +96,8 @@ Egress guard finds the stored approval and ALLOWS it once
 
 Canonical design docs:
 
-- [OPENCLAW-SECURITY-PLUGIN-SPEC.md](./OPENCLAW-SECURITY-PLUGIN-SPEC.md)
-- [OPENCLAW-SECURITY-PLUGIN-TEST-PLAN.md](./OPENCLAW-SECURITY-PLUGIN-TEST-PLAN.md)
+- [OPENCLAW-SCANNER-SPEC.md](./OPENCLAW-SCANNER-SPEC.md)
+- [OPENCLAW-SCANNER-TEST-PLAN.md](./OPENCLAW-SCANNER-TEST-PLAN.md)
 
 PromptScanner is optional. The default path is gateway-backed review using the models already configured on the OpenClaw install.
 Gateway review now prefers an internal subagent transport and only falls back to gateway HTTP review when loopback + token auth + explicit review endpoints are safely configured.
@@ -153,7 +153,7 @@ Minimal gateway-backed config:
 {
   "plugins": {
     "entries": {
-      "openclaw-security-scanner": {
+      "openclaw-scanner": {
         "enabled": true,
         "config": {
           "ingressBackend": "gateway",
@@ -174,7 +174,7 @@ Optional PromptScanner ingress config:
 {
   "plugins": {
     "entries": {
-      "openclaw-security-scanner": {
+      "openclaw-scanner": {
         "enabled": true,
         "config": {
           "ingressBackend": "promptscanner",
@@ -220,7 +220,7 @@ Optional PromptScanner ingress config:
 
 ## Antivirus Integration (ClamAV)
 
-OCSS integrates with [ClamAV](https://www.clamav.net/), the open-source antivirus engine, to audit file-producing shell actions and record whether antivirus coverage was active when they ran. ClamAV provides signature-based malware detection for files introduced by agent tool calls.
+OCS integrates with [ClamAV](https://www.clamav.net/), the open-source antivirus engine, to audit file-producing shell actions and record whether antivirus coverage was active when they ran. ClamAV provides signature-based malware detection for files introduced by agent tool calls.
 
 What it detects:
 
@@ -235,15 +235,15 @@ What it detects:
 Default behavior:
 
 - `antivirusMode = auto`
-- if `clamd` is reachable and `clamonacc` is active for the target path, OCSS records `Antivirus: active (on-access scanning enabled)`
-- if `clamd` is reachable but on-access coverage is not configured, OCSS runs a triggered scan through the `clamd` socket and records `Antivirus: active (triggered scans via clamd)`
-- if no usable daemon is available, OCSS records `Antivirus: unavailable - files were not scanned` and injects an antivirus warning unless `antivirusWarnUnavailable = false`
+- if `clamd` is reachable and `clamonacc` is active for the target path, OCS records `Antivirus: active (on-access scanning enabled)`
+- if `clamd` is reachable but on-access coverage is not configured, OCS runs a triggered scan through the `clamd` socket and records `Antivirus: active (triggered scans via clamd)`
+- if no usable daemon is available, OCS records `Antivirus: unavailable - files were not scanned` and injects an antivirus warning unless `antivirusWarnUnavailable = false`
 
 ### How ClamAV integration works
 
-1. OCSS detects the [ClamAV daemon (`clamd`)](https://docs.clamav.net/manual/Usage/Scanning.html#clamd) via its Unix socket (default: `/run/clamav/clamd.ctl`)
-2. When a file-producing action runs, OCSS checks if [`clamonacc`](https://docs.clamav.net/manual/OnAccess.html) (on-access scanning via fanotify) is active for the target path
-3. If on-access scanning is not configured, OCSS falls back to triggered scans through the `clamd` socket
+1. OCS detects the [ClamAV daemon (`clamd`)](https://docs.clamav.net/manual/Usage/Scanning.html#clamd) via its Unix socket (default: `/run/clamav/clamd.ctl`)
+2. When a file-producing action runs, OCS checks if [`clamonacc`](https://docs.clamav.net/manual/OnAccess.html) (on-access scanning via fanotify) is active for the target path
+3. If on-access scanning is not configured, OCS falls back to triggered scans through the `clamd` socket
 4. Scan verdicts (`clean`, `infected`, `unavailable`) are recorded in the antivirus ledger
 
 ### ClamAV setup for pod hosts
@@ -264,32 +264,32 @@ For managed [MoltPod](https://moltpod.com/) deployments, ClamAV is pre-configure
 
 ### Deliberate v1 scope
 
-- OCSS auto-detects `clamd`; it does not fall back to spawning standalone `clamscan`
+- OCS auto-detects `clamd`; it does not fall back to spawning standalone `clamscan`
 - low-memory installs without a daemon should either accept the unavailable warning or disable it explicitly
-- host-level fanotify / [`clamonacc`](https://docs.clamav.net/manual/OnAccess.html) remains the recommended managed-pod setup for before-access enforcement; OCSS treats that as a health/coverage signal, not as a replacement for host configuration
+- host-level fanotify / [`clamonacc`](https://docs.clamav.net/manual/OnAccess.html) remains the recommended managed-pod setup for before-access enforcement; OCS treats that as a health/coverage signal, not as a replacement for host configuration
 - see the [ClamAV documentation](https://docs.clamav.net/) for full configuration reference
 
 Antivirus state is written to:
 
-- `~/.openclaw/plugins/openclaw-security-scanner/antivirus-status.json`
-- `~/.openclaw/plugins/openclaw-security-scanner/antivirus-ledger.json`
+- `~/.openclaw/plugins/openclaw-scanner/antivirus-status.json`
+- `~/.openclaw/plugins/openclaw-scanner/antivirus-ledger.json`
 
 Print the latest antivirus records with:
 
 ```bash
-node scripts/print_antivirus_report.mjs --state-dir ~/.openclaw/plugins/openclaw-security-scanner
+node scripts/print_antivirus_report.mjs --state-dir ~/.openclaw/plugins/openclaw-scanner
 ```
 
 Or, on OpenClaw builds that expose plugin CLI registration:
 
 ```bash
-openclaw ocss antivirus-report
-openclaw ocss antivirus-report --json --limit 50
+openclaw ocs antivirus-report
+openclaw ocs antivirus-report --json --limit 50
 ```
 
 ## Logging
 
-The plugin emits structured log lines with an `[openclaw-security-scanner]` prefix for:
+The plugin emits structured log lines with an `[openclaw-scanner]` prefix for:
 
 - ingress stubbing
 - egress allow / block / approval-required decisions
@@ -301,7 +301,7 @@ The plugin emits structured log lines with an `[openclaw-security-scanner]` pref
 
 For ingress decisions, the plugin now saves a lightweight review ledger at:
 
-- `~/.openclaw/plugins/openclaw-security-scanner/review-ledger.json`
+- `~/.openclaw/plugins/openclaw-scanner/review-ledger.json`
 
 Each record keeps:
 
@@ -315,14 +315,14 @@ It does not persist the raw reviewed tool-result body in the ledger.
 Print the latest records with:
 
 ```bash
-node scripts/print_review_ledger.mjs --state-dir ~/.openclaw/plugins/openclaw-security-scanner
+node scripts/print_review_ledger.mjs --state-dir ~/.openclaw/plugins/openclaw-scanner
 ```
 
 Or through the OpenClaw CLI when the plugin is installed:
 
 ```bash
-openclaw ocss report
-openclaw ocss report --json --limit 50
+openclaw ocs report
+openclaw ocs report --json --limit 50
 ```
 
 ## Tests
@@ -330,7 +330,7 @@ openclaw ocss report --json --limit 50
 Run:
 
 ```bash
-node --test ./test/security-plugin.test.mjs
+node --test ./test/openclaw-scanner.test.mjs
 ```
 
 Live pod antivirus smoke is documented in [ANTIVIRUS-SMOKE-TEST.md](./ANTIVIRUS-SMOKE-TEST.md).

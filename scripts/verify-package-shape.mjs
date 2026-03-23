@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * verify-package-shape.mjs — Pre-publish checks for openclaw-security-scanner
+ * verify-package-shape.mjs — Pre-publish checks for openclaw-scanner
  *
  * Runs as `prepublishOnly` to ensure the package is well-formed before npm publish.
  * Also callable from CI: `node scripts/verify-package-shape.mjs`
@@ -23,14 +23,14 @@ function check(label, condition) {
   }
 }
 
-console.log('Verifying package shape for openclaw-security-scanner...\n');
+console.log('Verifying package shape for openclaw-scanner...\n');
 
 // 1. package.json checks
 const pkgPath = join(root, 'package.json');
 check('package.json exists', existsSync(pkgPath));
 
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-check('name is "openclaw-security-scanner" (unscoped)', pkg.name === 'openclaw-security-scanner');
+check('name is "openclaw-scanner" (unscoped)', pkg.name === 'openclaw-scanner');
 check('not marked private', pkg.private !== true);
 check('version is semver-shaped', /^\d+\.\d+\.\d+/.test(pkg.version));
 check('main points to index.mjs', pkg.main === 'index.mjs');
@@ -38,6 +38,10 @@ check('type is "module"', pkg.type === 'module');
 check('license is MIT', pkg.license === 'MIT');
 check('has repository url', !!pkg.repository?.url);
 check('has files array', Array.isArray(pkg.files) && pkg.files.length > 0);
+check(
+  'openclaw.extensions includes "./index.mjs"',
+  Array.isArray(pkg.openclaw?.extensions) && pkg.openclaw.extensions.includes('./index.mjs'),
+);
 
 // 2. Required files exist
 const requiredFiles = [
@@ -62,7 +66,8 @@ for (const f of requiredFiles) {
 const pluginPath = join(root, 'openclaw.plugin.json');
 if (existsSync(pluginPath)) {
   const plugin = JSON.parse(readFileSync(pluginPath, 'utf8'));
-  check('plugin id is "openclaw-security-scanner"', plugin.id === 'openclaw-security-scanner');
+  check('plugin id is "openclaw-scanner"', plugin.id === 'openclaw-scanner');
+  check('plugin version matches package version', plugin.version === pkg.version);
   check('plugin has configSchema', !!plugin.configSchema);
   check('plugin has version', !!plugin.version);
 }
