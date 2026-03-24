@@ -20,6 +20,7 @@ import {
   ANTIVIRUS_INLINE_UNAVAILABLE_MESSAGE,
   resolveImmediateAntivirusWarning,
 } from "../lib/antivirus.mjs";
+import { buildIngressReview } from "../lib/gateway-model.mjs";
 
 function jsonResponse(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -38,6 +39,20 @@ function gatewayOutput(payload) {
     ],
   };
 }
+
+test("buildIngressReview instructs the model to quarantine staged base64 auto-exec content", () => {
+  const review = buildIngressReview({
+    toolName: "fetch_url",
+    sourceClass: "external",
+    sessionTaint: "clean",
+    text: "import base64; exec(base64.b64decode('...'))",
+  });
+
+  assert.match(review.userText, /nested base64 decoding/i);
+  assert.match(review.userText, /base64\.b64decode\(\.\.\.\) combined with exec/i);
+  assert.match(review.userText, /\.pth, sitecustomize\.py, or usercustomize\.py/i);
+  assert.match(review.userText, /prefer quarantine/i);
+});
 
 function chatCompletionsOutput(payload) {
   return {
@@ -1773,6 +1788,95 @@ test("before_prompt_build can read wrapped runtime message entries for approval 
   }
 });
 
+test("before_prompt_build can grant approval from prompt text when the current user turn is not in messages yet", async () => {
+  const originalFetch = globalThis.fetch;
+
+  try {
+    const { hooks } = registerPlugin({
+      trustBackend: "disabled",
+      egressBackend: "gateway",
+      approvalIntentModel: "cheap-approval-model",
+    });
+    const beforeToolCall = hooks.get("before_tool_call");
+    const beforePromptBuild = hooks.get("before_prompt_build");
+    assert.ok(beforeToolCall);
+    assert.ok(beforePromptBuild);
+
+    const firstAttempt = await beforeToolCall(
+      {
+        toolName: "message",
+        params: { channel: "default", text: "hello from prompt-only approval smoke" },
+        toolCallId: "call-message-prompt-only-ask",
+      },
+      {
+        sessionKey: "session-message-prompt-only",
+        agentId: "main",
+        toolName: "message",
+      },
+    );
+    assert.equal(firstAttempt.block, true);
+
+    let fetchCount = 0;
+    globalThis.fetch = async (_url, options) => {
+      fetchCount += 1;
+      const body = JSON.parse(options.body);
+      const prompt = body?.input?.[1]?.content?.[0]?.text || "";
+      const match = prompt.match(/approval_id=([^\s|]+)/);
+      if (fetchCount === 1) {
+        return jsonResponse(
+          gatewayOutput({
+            decision: "grant",
+            approval_id: match?.[1],
+            reason: "The prompt text clearly approves sending the pending message now.",
+            confidence: 0.94,
+          }),
+        );
+      }
+      return jsonResponse(
+        gatewayOutput({
+          decision: "no_refusal",
+          reason: "The prompt text does not refuse the action.",
+          confidence: 0.96,
+        }),
+      );
+    };
+
+    const hookResult = await beforePromptBuild(
+      {
+        prompt: "Yes, send it now.",
+        messages: [
+          {
+            role: "assistant",
+            content: [{ type: "text", text: "I need your approval before I send that message." }],
+          },
+        ],
+      },
+      {
+        sessionKey: "session-message-prompt-only",
+        agentId: "main",
+      },
+    );
+
+    assert.match(hookResult.prependContext, /approval for one pending action/i);
+
+    const approvedAttempt = await beforeToolCall(
+      {
+        toolName: "message",
+        params: { channel: "default", text: "hello from prompt-only approval smoke" },
+        toolCallId: "call-message-prompt-only-allow",
+      },
+      {
+        sessionKey: "session-message-prompt-only",
+        agentId: "main",
+        toolName: "message",
+      },
+    );
+    assert.equal(approvedAttempt, undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("before_prompt_build can grant a single pending approval even if the classifier omits approval_id", async () => {
   const originalFetch = globalThis.fetch;
   let fetchCount = 0;
@@ -2350,6 +2454,84 @@ test("before_prompt_build records denied approval from natural language and keep
       },
       {
         sessionKey: "session-message-deny",
+        agentId: "main",
+        toolName: "message",
+      },
+    );
+    assert.equal(deniedAttempt.block, true);
+    assert.match(deniedAttempt.blockReason, /user denied approval/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("before_prompt_build records denied approval from prompt text when the current user turn is not in messages yet", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    const { hooks } = registerPlugin({
+      trustBackend: "disabled",
+      egressBackend: "gateway",
+      approvalIntentModel: "cheap-approval-model",
+    });
+    const beforeToolCall = hooks.get("before_tool_call");
+    const beforePromptBuild = hooks.get("before_prompt_build");
+    assert.ok(beforeToolCall);
+    assert.ok(beforePromptBuild);
+
+    const firstAttempt = await beforeToolCall(
+      {
+        toolName: "message",
+        params: { channel: "default", text: "please do not send from prompt-only denial" },
+        toolCallId: "call-message-prompt-only-deny-ask",
+      },
+      {
+        sessionKey: "session-message-prompt-only-deny",
+        agentId: "main",
+        toolName: "message",
+      },
+    );
+    assert.equal(firstAttempt.block, true);
+
+    globalThis.fetch = async (_url, options) => {
+      const body = JSON.parse(options.body);
+      const prompt = body?.input?.[1]?.content?.[0]?.text || "";
+      const match = prompt.match(/approval_id=([^\s|]+)/);
+      return jsonResponse(
+        gatewayOutput({
+          decision: "deny",
+          approval_id: match?.[1],
+          reason: "The prompt text clearly refuses to send the pending message.",
+          confidence: 0.91,
+        }),
+      );
+    };
+
+    const hookResult = await beforePromptBuild(
+      {
+        prompt: "No, do not send it.",
+        messages: [
+          {
+            role: "assistant",
+            content: [{ type: "text", text: "I need approval before I send that message." }],
+          },
+        ],
+      },
+      {
+        sessionKey: "session-message-prompt-only-deny",
+        agentId: "main",
+      },
+    );
+
+    assert.match(hookResult.prependContext, /recorded a user denial/i);
+
+    const deniedAttempt = await beforeToolCall(
+      {
+        toolName: "message",
+        params: { channel: "default", text: "please do not send from prompt-only denial" },
+        toolCallId: "call-message-prompt-only-deny-block",
+      },
+      {
+        sessionKey: "session-message-prompt-only-deny",
         agentId: "main",
         toolName: "message",
       },

@@ -2100,10 +2100,13 @@ const plugin = {
         sessionKey,
       );
       const fallbackLatestUser = extractLatestMessageText(event.messages, "user", 2000);
-      const latestUserText = fallbackLatestUser?.text || persistedMessages?.latestUserText || "";
+      const promptLatestUserText = normalizeApprovalIntentText(event.prompt) || event.prompt || "";
+      const latestUserText =
+        fallbackLatestUser?.text || promptLatestUserText || persistedMessages?.latestUserText || "";
       const previousAssistantText =
+        extractPreviousAssistantText(event.messages, fallbackLatestUser?.index, 2000) ||
         persistedMessages?.previousAssistantText ||
-        extractPreviousAssistantText(event.messages, fallbackLatestUser?.index, 2000);
+        "";
       return await resolveApprovalIntentForSession({
         sessionKey,
         latestUserText,
