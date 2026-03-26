@@ -3,7 +3,9 @@
 [![npm version](https://img.shields.io/npm/v/openclaw-scanner)](https://www.npmjs.com/package/openclaw-scanner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-OpenClaw-native scanner plugin for:
+`openclaw-scanner` is the OpenClaw plugin. `openclaw-scand` is the optional separate-UID scan daemon it can delegate ClamAV and OSV work to.
+
+This package adds:
 
 - **Ingress Guard**: review untrusted tool output before the next model turn
 - **Egress Guard**: block obviously unsafe tool actions before they run
@@ -12,11 +14,22 @@ OpenClaw-native scanner plugin for:
 - **Scan Daemon**: optional `openclaw-scand` separate-UID scan daemon for ClamAV and OSV execution
 - **Exec Posture Warning**: loud degraded-posture reporting when exec-capable tools are enabled
 
-Install from npm through OpenClaw:
+## Start Here
+
+Install the plugin through OpenClaw:
 
 ```bash
 openclaw plugins install openclaw-scanner
 ```
+
+If you want the hardened separate-UID scan path, install `openclaw-scand` from the ops repo after the plugin is in place.
+
+Read next:
+
+- plugin behavior and limits: [docs/OPENCLAW-SCANNER-SPEC.md](./docs/OPENCLAW-SCANNER-SPEC.md)
+- plugin QA matrix: [docs/OPENCLAW-SCANNER-TEST-PLAN.md](./docs/OPENCLAW-SCANNER-TEST-PLAN.md)
+- scan daemon design: [docs/OPENCLAW-SCAND-SPEC.md](./docs/OPENCLAW-SCAND-SPEC.md)
+- live pod smoke: [docs/SMOKE-TEST.md](./docs/SMOKE-TEST.md)
 
 Links:
 
@@ -98,43 +111,18 @@ Agent retries git push --force origin main
 Egress guard finds the stored approval and ALLOWS it once
 ```
 
-Canonical design docs:
-
-- [OPENCLAW-SCANNER-SPEC.md](./OPENCLAW-SCANNER-SPEC.md)
-- [OPENCLAW-SCANNER-TEST-PLAN.md](./OPENCLAW-SCANNER-TEST-PLAN.md)
-- [OPENCLAW-SCAND-SPEC.md](./OPENCLAW-SCAND-SPEC.md)
-- [OPENCLAW-SCAND-PLAN.md](./OPENCLAW-SCAND-PLAN.md)
-
 PromptScanner is optional. The default path is gateway-backed review using the models already configured on the OpenClaw install.
 Gateway review now prefers an internal subagent transport and only falls back to gateway HTTP review when loopback + token auth + explicit review endpoints are safely configured.
 If you do not set `trustModel`, `ingressModel`, `egressModel`, or `approvalIntentModel`, the plugin now inherits the pod's configured primary agent model. `approvalIntentModel` falls back to `egressModel` first.
 
-## Current Launch Shape
-
-What it does now:
-
-1. classifies tool trust in `before_tool_call`
-2. applies deterministic egress blocking for obvious secret reads, dangerous shell payloads, and OCS control-plane paths
-3. records degraded exec posture when exec-capable tools are configured or observed
-4. blocks high-impact actions with an approval-required reason and stores one pending approval per exact action
-5. stubs untrusted tool results in `tool_result_persist` so raw content is not persisted to the model-visible transcript
-6. prefetches ingress review in `after_tool_call`
-7. runs ClamAV file scanning and OSV package scanning after package-producing actions, directly or through `openclaw-scand` when configured
-8. resolves pending tool-result stubs in `before_prompt_build` to:
-   - raw content for `allow`
-   - wrapped untrusted content for `warn`
-   - placeholder-only content for `quarantine`
-9. classifies the latest trusted user reply with `approvalIntentModel` so natural-language approval can grant or deny one pending action without exposing hashes to the user
-10. re-checks the persisted session transcript inside `before_tool_call` for approval-required retries so the exact pending action can still unblock even when runtime prompt-build messages are sparse or wrapped
-
-Important current constraint:
+## Limitations
 
 - OpenClaw's `before_tool_call` hook only supports allow or block
 - so plugin-grade `ask` still appears as a block on the first attempt
 - the interactive approval loop now happens on the next turn: the plugin reviews the user's latest reply with `approvalIntentModel` and allows the exact pending action once if the user clearly approved it
 - if exec-capable tools are exposed, OCS reports `degraded_exec_posture`; ingress and egress still work, but same-UID self-tamper resistance is no longer a credible claim
-- live messaging-pod smoke is documented in [SMOKE-TEST.md](./SMOKE-TEST.md)
-- exec-capable canary smoke for scan-daemon-backed download and package-install coverage is documented in [ANTIVIRUS-SMOKE-TEST.md](./ANTIVIRUS-SMOKE-TEST.md)
+- live messaging-pod smoke is documented in [docs/SMOKE-TEST.md](./docs/SMOKE-TEST.md)
+- exec-capable canary smoke for scan-daemon-backed download and package-install coverage is documented in [docs/ANTIVIRUS-SMOKE-TEST.md](./docs/ANTIVIRUS-SMOKE-TEST.md)
 - routine `git push` is allowed; `git push --force`, `git push -f`, and `git push --force-with-lease` require approval
 
 ## Backends
@@ -413,9 +401,6 @@ The current hardening stages are:
 - base OCS inside the OpenClaw hook boundary
 - optional `openclaw-scand` scan daemon for a separate-UID scan boundary
 
-- [OPENCLAW-SCAND-SPEC.md](./OPENCLAW-SCAND-SPEC.md)
-- [OPENCLAW-SCAND-PLAN.md](./OPENCLAW-SCAND-PLAN.md)
-
 The next slice after the scan daemon is a separate-UID approval control plane so approval state stops being `openclaw`-owned JSON.
 
 ## RFC: Artifact Taint And Script Recheck
@@ -503,9 +488,9 @@ Run:
 npm test
 ```
 
-Live pod messaging and scan-daemon smoke are documented in [SMOKE-TEST.md](./SMOKE-TEST.md).
+Live pod messaging and scan-daemon smoke are documented in [docs/SMOKE-TEST.md](./docs/SMOKE-TEST.md).
 
-Exec-capable canary scan smoke is documented in [ANTIVIRUS-SMOKE-TEST.md](./ANTIVIRUS-SMOKE-TEST.md).
+Exec-capable canary scan smoke is documented in [docs/ANTIVIRUS-SMOKE-TEST.md](./docs/ANTIVIRUS-SMOKE-TEST.md).
 
 Important live QA note:
 
