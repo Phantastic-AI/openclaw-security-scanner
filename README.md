@@ -3,15 +3,17 @@
 [![npm version](https://img.shields.io/npm/v/openclaw-scanner)](https://www.npmjs.com/package/openclaw-scanner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`openclaw-scanner` is the OpenClaw plugin. `openclaw-scand` is the optional separate-UID scan daemon it can delegate ClamAV and OSV work to.
+`openclaw-scanner` protects OpenClaw agents from prompt injection and unsafe tool use by checking both what comes back from tools and what the model is about to do next. It also scans downloaded files and installed packages for malware and known vulnerabilities.
 
-This package adds:
+The plugin works on its own. If you want stronger isolation, add the optional `openclaw-scand` companion daemon: it runs ClamAV and OSV-Scanner outside the main OpenClaw user, and uses [bubblewrap](https://github.com/containers/bubblewrap) to sandbox OSV-Scanner.
+
+This package includes:
 
 - **Ingress Guard**: review untrusted tool output before the next model turn
 - **Egress Guard**: block obviously unsafe tool actions before they run
 - **Antivirus Integration**: [ClamAV](https://www.clamav.net/)-backed file scanning for package installs, downloads, and archive extraction
 - **Package SCA**: [OSV-Scanner](https://google.github.io/osv-scanner/) checks package installs for known vulnerable dependencies
-- **Scan Daemon**: optional `openclaw-scand` separate-UID scan daemon for ClamAV and OSV execution
+- **Scan Daemon**: optional `openclaw-scand` companion daemon for isolated ClamAV and OSV scanning
 - **Exec Posture Warning**: loud degraded-posture reporting when exec-capable tools are enabled
 
 ## Start Here
@@ -22,7 +24,7 @@ Install the plugin through OpenClaw:
 openclaw plugins install openclaw-scanner
 ```
 
-If you want the hardened separate-UID scan path, install `openclaw-scand` from the ops repo after the plugin is in place.
+Want the isolated scanning setup too? This package also ships `openclaw-scand`, which runs ClamAV and OSV-Scanner outside the main OpenClaw user and sandboxes OSV-Scanner with bubblewrap.
 
 Read next:
 
