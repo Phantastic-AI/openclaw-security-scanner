@@ -39,74 +39,15 @@ If you want help choosing a deployment tier or wiring the helper daemons into a 
 
 ### 1. Two Guards, Two Doors
 
-```text
-┌──────────────────────────────┐         ┌───────────────────────┐         ┌──────────────────────────────┐
-│ Outside World                │         │ AI Agent / OpenClaw   │         │ Outside World                │
-│ web pages, APIs, tool output │ ─────▶  │ your pod runtime      │ ─────▶  │ email, shell, git, deploys  │
-└──────────────────────────────┘         └───────────────────────┘         └──────────────────────────────┘
-               ▲                                         ▲                                         ▲
-               │                                         │                                         │
-        Ingress Guard                             decides what the                           Egress Guard
-      "What's coming in?"                         agent actually sees                      "What's going out?"
-      - prompt injection?                                                                   - safe to run?
-      - hostile instructions?                                                                - secrets or exfil?
-      - wrap or quarantine it?                                                               - needs approval?
-```
+![Two Guards, Two Doors](./docs/assets/two-guards-two-doors.png)
 
 ### 2. Ingress Review For Untrusted Tool Output
 
-```text
-Agent calls browser tool
-        │
-        ▼
-Gets webpage HTML back
-        │
-        ▼
-Is this tool trusted or untrusted?
-(browser = untrusted content source)
-        │
-        ▼
-Ingress review scans the content
-┌───────────────┬───────────────┬──────────────────────────┐
-│ ALLOW         │ WARN          │ QUARANTINE               │
-│ clean         │ suspicious    │ prompt injection         │
-├───────────────┼───────────────┼──────────────────────────┤
-│ raw content   │ wrapped as    │ replaced with            │
-│ passes        │ untrusted     │ "[content quarantined]"  │
-│ through       │ reference     │ the agent never sees it  │
-│               │ material      │                          │
-└───────────────┴───────────────┴──────────────────────────┘
-```
+![Ingress Review For Untrusted Tool Output](./docs/assets/ingress-review-flow.png)
 
 ### 3. Approval Loop For High-Impact Egress
 
-```text
-Agent wants to run: git push --force origin main
-        │
-        ▼
-Egress guard (`policy.mjs`) => finalAction: "ask"
-reasonCode: "high_impact_shell_command"
-        │
-        ▼
-OpenClaw runtime only supports "allow" or "block"
-so the first attempt becomes a BLOCK with a structured reason
-        │
-        ▼
-Agent tells the user:
-"Security requires approval for this action: force push"
-        │
-        ▼
-User replies: "Do it"
-        │
-        ▼
-Approval-intent review records approval for that exact action
-        │
-        ▼
-Agent retries git push --force origin main
-        │
-        ▼
-Egress guard finds the stored approval and ALLOWS it once
-```
+![Approval Loop For High-Impact Egress](./docs/assets/approval-loop.png)
 
 ## Read Next
 
