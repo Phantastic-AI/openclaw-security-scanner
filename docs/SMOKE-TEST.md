@@ -3,6 +3,8 @@
 Last updated: 2026-03-25
 Canonical spec: [OPENCLAW-SCANNER-SPEC.md](./OPENCLAW-SCANNER-SPEC.md)
 
+This is a maintainer-facing live smoke guide. Keep run-specific host notes, prefixes, and dated evidence in your ops docs or ticket history, not here.
+
 This plugin has one repeatable pod smoke path with two phases:
 
 - the live `messaging` gateway for `allow / ask / approve / deny`
@@ -37,19 +39,19 @@ Exec-capable canary gateway:
 ## One-command smoke
 
 ```bash
-./smoke/smoke_remote_scanner.sh 51.210.13.102
+./smoke/smoke_remote_scanner.sh <host-or-pod-ip>
 ```
 
 Optional session prefix:
 
 ```bash
-./smoke/smoke_remote_scanner.sh 51.210.13.102 my-smoke
+./smoke/smoke_remote_scanner.sh <host-or-pod-ip> my-smoke
 ```
 
 Include the negative scan-daemon-required check:
 
 ```bash
-SMOKE_INCLUDE_SCAN_DAEMON_FAILCLOSED=1 ./smoke/smoke_remote_scanner.sh 51.210.13.102 my-smoke
+SMOKE_INCLUDE_SCAN_DAEMON_FAILCLOSED=1 ./smoke/smoke_remote_scanner.sh <host-or-pod-ip> my-smoke
 ```
 
 ## How to read the results
@@ -77,43 +79,11 @@ Important caveat:
   - antivirus/SCA ledgers record `unavailable`
   - no new scan-daemon log record appears for the blocked action
 
-## Live evidence notes for this pod
-
-The `dev-security` pod currently uses:
-
-- a live `messaging` gateway on `~/.openclaw`
-- a coding-profile canary on `~/.openclaw-avsmoke` at `19011`
-
-The strongest main-gateway approval proof is a `sessions_send` request to the same session:
-
-- OpenClaw Scanner blocks it first as `ask`
-- a natural-language `Yes, send it now.` grants the exact pending action once
-- the tool then runs successfully on the same session via `sessions_send ... timeoutSeconds 0`
-- the live transcript shows the accepted send result and the echoed inbound inter-session message
-
-Concrete verified live prefix on `51.210.13.102` on March 25, 2026 UTC:
-
-- `qa-062`
-
-For `qa-062`, the smoke proved:
-
-- main gateway `allow` passed
-- main gateway natural-language `ask -> approve -> send once` passed
-- main gateway natural-language `deny` passed and left a denied approval-store entry
-- canary `posture-report` showed `degraded_exec_posture`
-- canary download recorded scan-daemon-backed antivirus `clean`
-- canary package install recorded scan-daemon-backed antivirus `clean`
-- canary package install recorded scan-daemon-backed OSV `advisory`
-- scan-daemon-required negative check left the workspace path absent even though the assistant reply still guessed the package name
-
 ## Troubleshooting
 
 - The smoke harness sets `OPENCLAW_GATEWAY_PORT=19011` for the canary. Do not drop that env or the CLI may drift back to the main `18789` gateway.
 - If `gateway call ...` returns websocket `1006`, the gateway usually was not fully ready yet after restart. Rerun after `gateway call status --timeout 30000 --json` succeeds.
 - If approval review fails with `401 Unauthorized`, check whether the systemd env token and `openclaw.json` token differ. The plugin now prefers the configured gateway auth token for local HTTP review and logs a mismatch warning.
-- The current pod has broken Mattermost auth. `message` tool behavior is noisy here. Prefer `sessions_send` for repeatable messaging smoke on this stack.
-- `openclaw gateway restart` from an arbitrary SSH shell is not authoritative on this host. For the main gateway, restart the real user service with `sudo -u openclaw XDG_RUNTIME_DIR=/run/user/999 systemctl --user restart openclaw-gateway.service`.
-- The canary is a separate background process, not the main user systemd unit. If you cycle it manually, preserve:
-  - `OPENCLAW_STATE_DIR=/home/openclaw/.openclaw-avsmoke`
-  - `OPENCLAW_CONFIG_PATH=/home/openclaw/.openclaw-avsmoke/openclaw.json`
-  - `OPENCLAW_GATEWAY_PORT=19011`
+- Prefer `sessions_send` over stack-specific chat tools when you want a repeatable approval smoke.
+- Restart the real runtime-user gateway service, not an arbitrary shell wrapper, if the main gateway needs to be recycled.
+- The canary is usually a separate background process, not the main user service. If you cycle it manually, preserve its state dir, config path, and dedicated gateway port.

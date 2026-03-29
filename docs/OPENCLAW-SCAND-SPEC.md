@@ -4,6 +4,8 @@ Last updated: 2026-03-25
 
 Canonical markdown: [OPENCLAW-SCAND-SPEC.md](./OPENCLAW-SCAND-SPEC.md)
 
+This is a deep reference doc for the scan daemon boundary. Most operators should start with the README and deployment guide first.
+
 ## Status
 
 This document specifies the next hardened scan boundary for OpenClaw Scanner (OCS).

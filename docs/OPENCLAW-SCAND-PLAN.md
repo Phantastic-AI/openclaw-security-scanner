@@ -4,6 +4,8 @@ Last updated: 2026-03-25
 
 Canonical markdown: [OPENCLAW-SCAND-PLAN.md](./OPENCLAW-SCAND-PLAN.md)
 
+This is a historical implementation plan kept as maintainer reference. It is not required reading for deployers.
+
 ## Goal
 
 Implement the `openclaw-scand` scan daemon with the smallest credible cut:

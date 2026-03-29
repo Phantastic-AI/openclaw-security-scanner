@@ -4,6 +4,8 @@ Last updated: 2026-03-25
 
 Canonical markdown: [OPENCLAW-SCANNER-SPEC.md](./OPENCLAW-SCANNER-SPEC.md)
 
+This is a deep reference doc for maintainers, reviewers, and security design work. Most operators should start with the README and the reader docs first.
+
 ## Summary
 
 This plugin has one job: keep untrusted content out of model context unless it has been handled safely, and keep unsafe tool actions from running without scrutiny.

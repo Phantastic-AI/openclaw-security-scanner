@@ -4,6 +4,8 @@ Last updated: 2026-03-25
 
 Canonical markdown for the public scanner repo: [OPENCLAW-SCANNER-TEST-PLAN.md](./OPENCLAW-SCANNER-TEST-PLAN.md)
 
+This is a maintainer-facing QA reference. Most readers should use the smoke docs or the reader docs first.
+
 ## Scope
 
 This plan covers the minimal spine in [OPENCLAW-SCANNER-SPEC.md](./OPENCLAW-SCANNER-SPEC.md).
