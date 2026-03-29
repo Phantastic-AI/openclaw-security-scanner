@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/openclaw-scanner)](https://www.npmjs.com/package/openclaw-scanner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`openclaw-scanner` is an essential part of a broader OpenClaw security posture. It reviews untrusted tool output before the model sees it, enforces policy on risky tool actions before they run, and records whether files and packages were scanned by antivirus and package-security tools. Today that means ClamAV and OSV-Scanner, but the scanner surface is intended to grow. Coverage is per-call, not periodic.
+`openclaw-scanner` is an essential part of a broader OpenClaw security posture. It sits at two boundaries: ingress, where it reviews untrusted tool output before the next model turn; and egress, where it evaluates risky tool calls before they execute and can allow, ask, or block. It also records whether files and packages were scanned by antivirus and package-security tools. Today that means ClamAV and OSV-Scanner, but the scanner surface is intended to grow. Coverage is per-call, not periodic.
 
 Three deployment tiers, in order of hardening:
 
