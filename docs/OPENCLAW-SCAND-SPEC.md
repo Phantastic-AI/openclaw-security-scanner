@@ -326,7 +326,7 @@ The public scanner repo owns:
 - daemon client
 - daemon service source
 
-The private ops repo owns:
+Host-specific deployment assets can live in your own ops repo or config-management layer. Typical examples are:
 
 - systemd unit
 - install script
@@ -334,7 +334,7 @@ The private ops repo owns:
 - smoke scripts
 - runbooks
 
-This keeps the product surface public while keeping host mutation logic in ops.
+This keeps the product surface public while leaving host mutation logic to the operator.
 
 ## Install Flow
 
